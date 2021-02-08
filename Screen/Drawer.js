@@ -15,7 +15,7 @@ const homeScreenStack = ({navigation}) => {
       <Stack.Screen name="HomeScreen" component={HomeScreen}
         options={{title: 'Home', headerLeft: () => (
             <NavigationDrawerHeader navigationProps={navigation} />
-          ),headerStyle: {backgroundColor: '#B30E05'},headerTintColor: '#fff', headerTitleStyle: {fontWeight: 'bold'}}}/>
+          ),headerStyle: {backgroundColor: '#B30E05'}, headerTintColor: '#fff', headerTitleStyle: {fontWeight: 'bold'}}}/>
     </Stack.Navigator>
   );
 };
