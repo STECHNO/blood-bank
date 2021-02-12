@@ -1,46 +1,28 @@
 import React from 'react';
-import {View, Text, SafeAreaView} from 'react-native';
+import { SafeAreaView } from 'react-native';
+import { Container, Tab, Tabs } from 'native-base';
+import Recipients from '../Tabs/Recipients';
+import HomeTab from '../Tabs/HomeTab';
+import Donors from '../Tabs/Donors';
 
-const HomeScreen = () => {
+function HomeScreen({ navigation }) {
   return (
-    <SafeAreaView style={{flex: 1}}>
-      <View style={{flex: 1, padding: 16}}>
-        <View
-          style={{
-            flex: 1,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-          <Text
-            style={{
-              fontSize: 20,
-              textAlign: 'center',
-              marginBottom: 16,
-            }}>
-            Example of Splash, Login and Sign Up in React Native
-            {'\n\n'}
-            This is the Home Screen
-          </Text>
-        </View>
-        <Text
-          style={{
-            fontSize: 18,
-            textAlign: 'center',
-            color: 'grey',
-          }}>
-          Splash, Login and Register Example{'\n'}React Native
-        </Text>
-        <Text
-          style={{
-            fontSize: 16,
-            textAlign: 'center',
-            color: 'grey',
-          }}>
-          www.aboutreact.com
-        </Text>
-      </View>
+    <SafeAreaView style={{ flex: 1 }}>
+      <Container>
+        <Tabs tabBarPosition='bottom' >
+          <Tab heading="Home" tabStyle={{ backgroundColor: '#B30E05'}} textStyle={{color: '#fff'}} activeTabStyle={{ backgroundColor: '#B30E05'}}>
+            <HomeTab />
+          </Tab>
+          <Tab heading="Donors" tabStyle={{ backgroundColor: '#B30E05'}} textStyle={{color: '#fff'}} activeTabStyle={{ backgroundColor: '#B30E05'}}>
+            <Donors />
+          </Tab>
+          <Tab heading="Recipients" tabStyle={{ backgroundColor: '#B30E05'}} textStyle={{color: '#fff'}} activeTabStyle={{ backgroundColor: '#B30E05'}}>
+            <Recipients />
+          </Tab>
+        </Tabs>
+      </Container>
     </SafeAreaView>
-  );
+  )
 };
 
 export default HomeScreen;

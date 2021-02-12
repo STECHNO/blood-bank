@@ -1,13 +1,22 @@
 import React, { useState } from 'react';
-import { View, Text, SafeAreaView, ScrollView, StyleSheet, TouchableOpacity, Alert, Button, mage } from 'react-native';
-import { Icon, Item, Input, Label, Textarea, } from 'native-base';
+import { View, SafeAreaView, ScrollView, StyleSheet, TouchableOpacity, Alert, Button, Image } from 'react-native';
+import { Icon, Item, Input, Label, Textarea, ListItem, Text, Radio, Right, Left, Card, CardItem, Body } from 'native-base';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { Picker } from '@react-native-picker/picker';
+import { connect } from 'react-redux';
+import { pakhPalle } from '../../store/action';
+import bloodDrop from '../../Image/b3.png';
 
 const Profile = (props) => {
   const [date, setDate] = useState(new Date());
   const [mode, setMode] = useState('date');
   const [show, setShow] = useState(false);
-  console.log(date);
+  const [male, setMale] = useState(false);
+  const [female, setFemale] = useState(false);
+  const [selectedValue, setSelectedValue] = useState("Select Your Blood Group");
+  const [showInput, setShowInput] = useState(true);
+  const [detectLocation, setDetectLocation] = useState(false);
+  const [enterLocation, setEnterLocation] = useState(false);
 
   const onChange = (event, selectedDate) => {
     const currentDate = selectedDate || date;
@@ -23,6 +32,12 @@ const Profile = (props) => {
   const showDatepicker = () => {
     showMode('date');
   };
+
+
+
+  // const { name, age, mobile, pakhPalle } = props;
+  // console.log(name, age, mobile, pakhPalle)
+  // console.log(props.name, props.age, props.mobile, props.pakhPalle)
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
       <ScrollView persistentScrollbar={true} >
@@ -60,6 +75,60 @@ const Profile = (props) => {
                   <Label style={styles.labelStyle}>Mobile number</Label>
                   <Input style={styles.inputStyle} />
                 </Item>
+                <View style={{ marginBottom: 10, borderBottomColor: '#f2f2f2', borderBottomWidth: 1 }}>
+                  <Label style={styles.labelStyle}>Blood Group</Label>
+
+
+                  <Picker
+                    selectedValue={selectedValue}
+                    dropdownIconColor='#C34632'
+                    style={{ color: '#B30E05', height: 50, width: 150, borderWidth: 0 }}
+                    onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}
+                  >
+                    <Picker.Item label="A+" value="A+" />
+                    <Picker.Item label="O+" value="O+" />
+                    <Picker.Item label="B+" value="B+" />
+                    <Picker.Item label="AB+" value="AB+" />
+                    <Picker.Item label="A-" value="A-" />
+                    <Picker.Item label="O-" value="O-" />
+                    <Picker.Item label="B-" value="B-" />
+                    <Picker.Item label="AB-" value="AB-" />
+                  </Picker>
+                  {/* <Input style={styles.inputStyle} /> */}
+                </View>
+
+                <View style={{ marginBottom: 12, borderBottomColor: '#f2f2f2', borderBottomWidth: 2 }}>
+                  <Label style={styles.labelStyle}>Gender</Label>
+                  <View style={{ flexDirection: 'row' }}>
+                    <View style={{ flex: 1 }}>
+                      <ListItem style={{ marginLeft: 7 }}>
+                        <Left >
+                          <Text style={{ color: '#B30E05' }}>Male</Text>
+                        </Left>
+                        <Right>
+                          <Radio color={"#B30E05"} selectedColor={"#C34632"} selected={male} onPress={() => {
+                            setMale(true);
+                            setFemale(false);
+                            pakhPalle();
+                          }} />
+                        </Right>
+                      </ListItem>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <ListItem>
+                        <Left>
+                          <Text style={{ color: '#B30E05' }}>Female</Text>
+                        </Left>
+                        <Right>
+                          <Radio color={"#B30E05"} selectedColor={"#C34632"} selected={female} onPress={() => {
+                            setMale(false);
+                            setFemale(true)
+                          }} />
+                        </Right>
+                      </ListItem>
+                    </View>
+                  </View>
+                </View>
                 <View>
                   {show && (
                     <DateTimePicker
@@ -70,22 +139,69 @@ const Profile = (props) => {
                       onChange={onChange}
                     />
                   )}
-                <Item floatingLabel style={{ marginBottom: 10 }}>
-                  <Label style={styles.labelStyle} >Date</Label>
-                  <Input placeholder="Underline Textbox" placeholderTextColor='B30E05' style={{color: '#B30E05'}} value={date.toString().substr(4, 11)} onChangeText={showDatepicker}/>
-                  {/* <Input style={styles.inputStyle} onChangeText={showDatepicker} /> */}
-                </Item>
+                  <Item floatingLabel style={{ marginBottom: 10 }}>
+                    <Label style={styles.labelStyle} >Date</Label>
+                    <Input placeholder="Underline Textbox" placeholderTextColor='#B30E05' style={{ color: '#B30E05' }} value={date.toString().substr(4, 11)} onChangeText={showDatepicker} />
+                  </Item>
                 </View>
-                <Item floatingLabel style={{ marginBottom: 10 }}>
-                  <Label style={styles.labelStyle}>Blood Group</Label>
-                  <Input style={styles.inputStyle} />
-                </Item>
                 <View style={{ marginTop: 2, marginBottom: 10 }}>
                   <Textarea style={{ paddingLeft: 8, fontFamily: 'Lato-Regular', fontSize: 18, color: '#B30E05' }} rowSpan={5} underline={true} placeholderTextColor='#B30E05' placeholder="Address" />
                 </View>
-                <View>
-                  <Text>Location</Text>
+
+
+
+                <View style={{ marginBottom: 12, borderBottomColor: '#f2f2f2', borderBottomWidth: 1 }}>
+                  <Label style={styles.labelStyle}>Location</Label>
+                  <View >
+                    <View style={{ flex: 1 }}>
+                      <ListItem style={{ marginLeft: 7, width: '60%' }}>
+                        <Left >
+                          <Text style={{ color: '#B30E05' }}>Detect My Location</Text>
+                        </Left>
+                        <Right>
+                          <Radio color={"#B30E05"} selectedColor={"#C34632"} selected={detectLocation} onPress={() => {
+                            setDetectLocation(true);
+                            setEnterLocation(false);
+                            setShowInput(true);
+                          }} />
+                        </Right>
+                      </ListItem>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <ListItem style={{ marginLeft: 7, width: '60%' }}>
+                        <Left>
+                          <Text style={{ color: '#B30E05' }}>Enter Location</Text>
+                        </Left>
+                        <Right>
+                          <Radio color={"#B30E05"} selectedColor={"#C34632"} selected={enterLocation} onPress={() => {
+                            setEnterLocation(true);
+                            setDetectLocation(false);
+                            setShowInput(false);
+                          }} />
+                        </Right>
+                      </ListItem>
+                      <Item regular style={{ marginTop: 10, marginBottom: 12, borderBottomColor: '#f2f2f2', borderBottomWidth: 1 }}>
+                        <Input style={{ paddingBottom: 19 }} placeholder='Enter Your location' placeholderTextColor='#bd908a' disabled={showInput} />
+                      </Item>
+                    </View>
+                  </View>
                 </View>
+
+
+
+                <Card>
+                  <CardItem style={styles.mapSnap}>
+                      <View>
+                      </View>
+                  </CardItem>
+                </Card>
+
+
+
+
+
+
+
                 <View>
                   <TouchableOpacity style={styles.btn} onPress={() =>
                     Alert.alert(
@@ -165,7 +281,25 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontFamily: 'Lato-Regular',
     color: '#fff',
-  }
+  },
+  mapSnap: {
+      width: '100%',
+      height: 140,
+      padding: 0,
+      backgroundColor: 'pink',
+  },
 })
 
-export default Profile;
+const mapStateToProps = (state) => ({
+  name: state.app.name,
+  age: state.app.age,
+  mobile: state.app.mobile,
+})
+
+const mapDispatchToProps = (dispatch) => ({
+  ad_categories: (data) => dispatch(ad_categories(data)),
+  pakhPalle: () => dispatch(),
+
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(Profile);

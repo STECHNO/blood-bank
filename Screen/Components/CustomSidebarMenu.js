@@ -5,16 +5,16 @@ import AsyncStorage from '@react-native-community/async-storage';
 
 const CustomSidebarMenu = (props) => {
   return (
-    <View style={stylesSidebar.sideMenuContainer}>
-      <View style={stylesSidebar.profileHeader}>
-        <View style={stylesSidebar.profileHeaderPicCircle}>
+    <View style={styles.sideMenuContainer}>
+      <View style={styles.profileHeader}>
+        <View style={styles.profileHeaderPicCircle}>
           <Text style={{ fontSize: 25, color: '#fff' }}>
             {'About React'.charAt(0)}
           </Text>
         </View>
-        <Text style={stylesSidebar.profileHeaderText}>About React</Text>
+        <Text style={styles.profileHeaderText}>About React</Text>
       </View>
-      <View style={stylesSidebar.profileHeaderLine} />
+      <View style={styles.profileHeaderLine} />
 
       <DrawerContentScrollView {...props}>
 
@@ -53,18 +53,18 @@ const CustomSidebarMenu = (props) => {
 
 export default CustomSidebarMenu;
 
-const stylesSidebar = StyleSheet.create({
+const styles= StyleSheet.create({
   sideMenuContainer: {
     flex: 1,
     width: '100%',
     height: '100%',
-    backgroundColor: '#C34632',
+    backgroundColor: '#B30E05',
     paddingTop: 40,
     color: 'white',
   },
   profileHeader: {
     flexDirection: 'row',
-    backgroundColor: '#C34632',
+    backgroundColor: '#B30E05',
     padding: 15,
     textAlign: 'center',
   },
