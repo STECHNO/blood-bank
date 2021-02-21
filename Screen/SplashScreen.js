@@ -16,8 +16,7 @@ function SplashScreen({ navigation }) {
       </View>
       <View style={{ flexDirection: 'row', alignSelf: 'flex-end' }}>
         <Text style={{ fontFamily: 'Lato-Regular', color: '#fff' }} onPress={() => navigation.replace('Auth')} >Continue</Text>
-       
-        <Icon type="FontAwesome" ios='arrow-right' android='arrow-right' style={{ fontSize: 20, color: '#fff', marginBottom: 10, marginLeft: 10 }} />
+        <Icon type="FontAwesome" ios='arrow-right' android='arrow-right' style={{ fontSize: 20, color: '#fff', marginBottom: 10, marginLeft: 10 }} onPress={() => navigation.replace('Auth')} />
       </View>
     </LinearGradient>
   );

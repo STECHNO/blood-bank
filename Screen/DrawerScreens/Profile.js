@@ -1,59 +1,137 @@
-import React, { useState } from 'react';
-import { View, SafeAreaView, ScrollView, StyleSheet, TouchableOpacity, Alert, Button, Image } from 'react-native';
-import { Icon, Item, Input, Label, Textarea, ListItem, Text, Radio, Right, Left, Card, CardItem, Body } from 'native-base';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import React, { useState, useEffect } from 'react';
+import { View, SafeAreaView, ScrollView, StyleSheet, TouchableOpacity, Alert, Modal } from 'react-native';
+import { Icon, Item, Input, Label, Textarea, ListItem, Text, Radio, Right, Left } from 'native-base';
 import { Picker } from '@react-native-picker/picker';
 import { connect } from 'react-redux';
-import { pakhPalle } from '../../store/action';
-import bloodDrop from '../../Image/b3.png';
+import MapView, { PROVIDER_GOOGLE, Marker } from 'react-native-maps';
+import { getCurrentLocation, getUserPlace, getProfileData, updateProfileData, sendPhotoToDb } from '../../store/action';
+import auth from '@react-native-firebase/auth';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
+import { Thumbnail } from 'native-base';
+
+
 
 const Profile = (props) => {
-  const [date, setDate] = useState(new Date());
-  const [mode, setMode] = useState('date');
-  const [show, setShow] = useState(false);
-  const [male, setMale] = useState(false);
-  const [female, setFemale] = useState(false);
-  const [selectedValue, setSelectedValue] = useState("Select Your Blood Group");
-  const [showInput, setShowInput] = useState(true);
+  const [male, setMale] = useState(props.authUser.profileData.gender === 'Male');
+  const [female, setFemale] = useState(props.authUser.profileData.gender === 'Female');
+  const [gender, setGender] = useState(props.authUser.profileData.gender)
+  const [bloodGroup, setBloodGroup] = useState(props.authUser.profileData.bloodGroup);
   const [detectLocation, setDetectLocation] = useState(false);
   const [enterLocation, setEnterLocation] = useState(false);
-
-  const onChange = (event, selectedDate) => {
-    const currentDate = selectedDate || date;
-    setShow(Platform.OS === 'ios');
-    setDate(currentDate);
-  };
-
-  const showMode = (currentMode) => {
-    setShow(true);
-    setMode(currentMode);
-  };
-
-  const showDatepicker = () => {
-    showMode('date');
-  };
+  const [firstName, setFirstName] = useState(props.authUser.profileData.firstName);
+  const [lastName, setLastName] = useState(props.authUser.profileData.lastName);
+  const [email, setEmail] = useState(props.authUser.profileData.email);
+  const [dob, setDob] = useState(props.authUser.profileData.dob);
+  const [mobileNumber, setMobileNumber] = useState(props.authUser.profileData.mobileNumber);
+  const [address, setAddress] = useState(props.authUser.profileData.address);
+  const [latitude, setLatitude] = useState(props.app.latitude);
+  const [longitude, setLongitude] = useState(props.app.longitude);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [uri, setUri] = useState(props.authUser.profileData.uri);
 
 
+  useEffect(() => {
+    if (props.authUser.profileData.uri != null) {
+      setUri(props.authUser.profileData.uri);
+    }
+    if (props.authUser.user != null) {
+      props.getProfileData(props.authUser.user);
+    }
+  }, []);
 
-  // const { name, age, mobile, pakhPalle } = props;
-  // console.log(name, age, mobile, pakhPalle)
-  // console.log(props.name, props.age, props.mobile, props.pakhPalle)
+  const option = {
+    title: 'Select Photo',
+    mediaType: 'Photo',
+    maxWidth: 100,
+    maxHeight: 100,
+  }
+
+
+  const takePhoto = () => {
+    launchCamera(option, (response) => {
+      setModalVisible(!modalVisible)
+      props.sendPhotoToDb(response.uri);
+      // setUri(response.uri)
+      console.log(response.uir);
+      if (response.didCancel) {
+        console.log('Cancel')
+      }
+      else if (response.error) {
+        console.log(error)
+      }
+    })
+  }
+
+  const selectPhoto = () => {
+    launchImageLibrary(option, (response) => {
+      setModalVisible(!modalVisible)
+      props.sendPhotoToDb(response.uri);
+      // setUri(response.uri)
+      console.log(response.uir);
+      if (response.didCancel) {
+        console.log('Cancel')
+      }
+      else if (response.error) {
+        console.log(error)
+      }
+    })
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
       <ScrollView persistentScrollbar={true} >
         <View style={{ padding: 16 }}>
           <View style={styles.profileSnapCon}>
             <View style={{ alignItems: 'center', justifyContent: 'center', paddingTop: 25, paddingBottom: 25 }} >
-              <View style={styles.icon}>
-                <Icon type="FontAwesome" ios='user' android='user' />
-              </View>
+              <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={() => {
+                  Alert.alert("Modal has been closed.");
+                  setModalVisible(!modalVisible);
+                }}>
+                <View style={styles.centeredView}>
+                  <View style={styles.modalView}>
+                    <View style={{ flexDirection: "row-reverse", marginTop: 5 }}>
+                      <Icon ios='ios-close-circle' android="ios-close-circle" style={{ fontSize: 50, color: '#8B0001' }} onPress={() =>
+                        setModalVisible(!modalVisible)
+                      } />
+                    </View>
+                    <View style={{ marginTop: 20 }}>
+                      <TouchableOpacity style={styles.btn} onPress={() =>
+                        takePhoto()
+                      }>
+                        <Text style={styles.textStyle}>Take Photo From Camera</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity style={styles.btn} onPress={() =>
+                        selectPhoto()
+                      }>
+                        <Text style={styles.textStyle}>Select Photo From Gallery</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+              </Modal>
+              <TouchableOpacity style={styles.icon} onPress={() => {
+                setModalVisible(true);
+              }} >
+                {props.authUser.profileData.uri === '' && (
+                  <View style={styles.icon}>
+                    <Icon type="FontAwesome" ios='user' android='picture-o' />
+                    <Text style={{ fontFamily: 'Lato-Regular', fontWeight: '100', fontSize: 10, marginTop: 5 }}>Upload Photo</Text>
+                  </View>
+                )}
+                {(props.authUser.profileData.uri !== '') && (
+                  <Thumbnail large source={{ uri: props.authUser.profileData.uri }} />
+                )}
+              </TouchableOpacity>
               <View style={{ alignItems: 'center', justifyContent: 'center', paddingTop: 10 }}>
-                <Text style={{ fontWeight: '700', fontSize: 20 }}>Name</Text>
-                <Text style={{ fontWeight: '100', fontSize: 18 }}>Blood Group</Text>
+                <Text style={{ fontFamily: 'Lato-Regular', fontWeight: '700', fontSize: 20 }}> {`${props.authUser.profileData.firstName} ${props.authUser.profileData.lastName}`} </Text>
+                {(bloodGroup === '') ? (null) : (<Text style={{ fontFamily: 'Lato-Regular', fontWeight: '100', fontSize: 18 }}> {`Blood Group: ${bloodGroup}`} </Text>)}
               </View>
             </View>
           </View>
-
           <View style={styles.profileDetailsCon}>
             <View style={{}}>
               <View style={{}}>
@@ -61,30 +139,29 @@ const Profile = (props) => {
               <View style={{ width: '100%' }}>
                 <Item floatingLabel style={{ marginBottom: 10 }}>
                   <Label style={styles.labelStyle}>First Name</Label>
-                  <Input style={styles.inputStyle} />
+                  <Input style={styles.inputStyle} value={firstName} onChangeText={(text) => setFirstName(text)} />
                 </Item>
                 <Item floatingLabel style={{ marginBottom: 10 }}>
                   <Label style={styles.labelStyle}>Last Name</Label>
-                  <Input style={styles.inputStyle} />
+                  <Input style={styles.inputStyle} value={lastName} onChangeText={(text) => setLastName(text)} />
                 </Item>
                 <Item floatingLabel style={{ marginBottom: 10 }}>
                   <Label style={styles.labelStyle}>Email</Label>
-                  <Input style={styles.inputStyle} disabled />
+                  <Input style={styles.inputStyle} disabled value={email} onChangeText={(text) => setEmail(text)} />
                 </Item>
                 <Item floatingLabel style={{ marginBottom: 10 }}>
                   <Label style={styles.labelStyle}>Mobile number</Label>
-                  <Input style={styles.inputStyle} />
+                  <Input style={styles.inputStyle} value={mobileNumber} onChangeText={(num) => setMobileNumber(num)} />
                 </Item>
                 <View style={{ marginBottom: 10, borderBottomColor: '#f2f2f2', borderBottomWidth: 1 }}>
                   <Label style={styles.labelStyle}>Blood Group</Label>
-
-
                   <Picker
-                    selectedValue={selectedValue}
+                    selectedValue={bloodGroup}
                     dropdownIconColor='#C34632'
-                    style={{ color: '#B30E05', height: 50, width: 150, borderWidth: 0 }}
-                    onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}
+                    style={{ color: '#B30E05', height: 50, width: 250, borderWidth: 0 }}
+                    onValueChange={(itemValue, itemIndex) => setBloodGroup(itemValue)}
                   >
+                    <Picker.Item label="Select Blood Group" value="Select Blood Group" />
                     <Picker.Item label="A+" value="A+" />
                     <Picker.Item label="O+" value="O+" />
                     <Picker.Item label="B+" value="B+" />
@@ -94,14 +171,12 @@ const Profile = (props) => {
                     <Picker.Item label="B-" value="B-" />
                     <Picker.Item label="AB-" value="AB-" />
                   </Picker>
-                  {/* <Input style={styles.inputStyle} /> */}
                 </View>
-
                 <View style={{ marginBottom: 12, borderBottomColor: '#f2f2f2', borderBottomWidth: 2 }}>
                   <Label style={styles.labelStyle}>Gender</Label>
                   <View style={{ flexDirection: 'row' }}>
                     <View style={{ flex: 1 }}>
-                      <ListItem style={{ marginLeft: 7 }}>
+                      <ListItem style={{ marginLeft: 7 }} selected={male ? true : false}>
                         <Left >
                           <Text style={{ color: '#B30E05' }}>Male</Text>
                         </Left>
@@ -109,20 +184,21 @@ const Profile = (props) => {
                           <Radio color={"#B30E05"} selectedColor={"#C34632"} selected={male} onPress={() => {
                             setMale(true);
                             setFemale(false);
-                            pakhPalle();
+                            setGender('Male');
                           }} />
                         </Right>
                       </ListItem>
                     </View>
                     <View style={{ flex: 1 }}>
-                      <ListItem>
+                      <ListItem selected={female ? true : false}>
                         <Left>
                           <Text style={{ color: '#B30E05' }}>Female</Text>
                         </Left>
                         <Right>
                           <Radio color={"#B30E05"} selectedColor={"#C34632"} selected={female} onPress={() => {
                             setMale(false);
-                            setFemale(true)
+                            setFemale(true);
+                            setGender('Female');
                           }} />
                         </Right>
                       </ListItem>
@@ -130,26 +206,15 @@ const Profile = (props) => {
                   </View>
                 </View>
                 <View>
-                  {show && (
-                    <DateTimePicker
-                      testID="dateTimePicker"
-                      mode="date" value={new Date()}
-                      is24Hour={true}
-                      display="default"
-                      onChange={onChange}
-                    />
-                  )}
                   <Item floatingLabel style={{ marginBottom: 10 }}>
-                    <Label style={styles.labelStyle} >Date</Label>
-                    <Input placeholder="Underline Textbox" placeholderTextColor='#B30E05' style={{ color: '#B30E05' }} value={date.toString().substr(4, 11)} onChangeText={showDatepicker} />
+                    <Label style={styles.labelStyle} >Date of Birth</Label>
+                    <Input style={styles.labelStyle} disabled value={dob} />
                   </Item>
                 </View>
                 <View style={{ marginTop: 2, marginBottom: 10 }}>
-                  <Textarea style={{ paddingLeft: 8, fontFamily: 'Lato-Regular', fontSize: 18, color: '#B30E05' }} rowSpan={5} underline={true} placeholderTextColor='#B30E05' placeholder="Address" />
+                  <Label style={styles.labelStyle} >Address</Label>
+                  <Textarea style={{ paddingLeft: 8, fontFamily: 'Lato-Regular', fontSize: 18, color: '#B30E05' }} rowSpan={5} underline={true} placeholderTextColor='#B30E05' placeholder="Enter Your Address" value={address} onChangeText={(text) => setAddress(text)} />
                 </View>
-
-
-
                 <View style={{ marginBottom: 12, borderBottomColor: '#f2f2f2', borderBottomWidth: 1 }}>
                   <Label style={styles.labelStyle}>Location</Label>
                   <View >
@@ -162,12 +227,12 @@ const Profile = (props) => {
                           <Radio color={"#B30E05"} selectedColor={"#C34632"} selected={detectLocation} onPress={() => {
                             setDetectLocation(true);
                             setEnterLocation(false);
-                            setShowInput(true);
+                            props.getCurrentLocation();
                           }} />
                         </Right>
                       </ListItem>
                     </View>
-                    <View style={{ flex: 1 }}>
+                    <View style={{ flex: 1, marginBottom: 12 }}>
                       <ListItem style={{ marginLeft: 7, width: '60%' }}>
                         <Left>
                           <Text style={{ color: '#B30E05' }}>Enter Location</Text>
@@ -176,61 +241,81 @@ const Profile = (props) => {
                           <Radio color={"#B30E05"} selectedColor={"#C34632"} selected={enterLocation} onPress={() => {
                             setEnterLocation(true);
                             setDetectLocation(false);
-                            setShowInput(false);
+                            props.getUserPlace();
                           }} />
                         </Right>
                       </ListItem>
-                      <Item regular style={{ marginTop: 10, marginBottom: 12, borderBottomColor: '#f2f2f2', borderBottomWidth: 1 }}>
-                        <Input style={{ paddingBottom: 19 }} placeholder='Enter Your location' placeholderTextColor='#bd908a' disabled={showInput} />
-                      </Item>
                     </View>
                   </View>
                 </View>
-
-
-
-                <Card>
-                  <CardItem style={styles.mapSnap}>
-                      <View>
-                      </View>
-                  </CardItem>
-                </Card>
-
-
-
-
-
-
-
                 <View>
-                  <TouchableOpacity style={styles.btn} onPress={() =>
-                    Alert.alert(
-                      'Congratulations!',
-                      'Your profile has been updated',
-                      [
-                        {
-                          text: 'Edit',
-                          onPress: () => {
-                            return null;
-                          },
-                        },
-                        {
-                          text: 'Go to Home',
-                          onPress: () => {
-                            props.navigation.replace('DrawerNav');
-                          },
-                        },
-                      ],
-                      { cancelable: false },
-                    )}>
+                  {(props.authUser.profileData.location.latitude != '') && (
+                    <MapView
+                      provider={PROVIDER_GOOGLE}
+                      style={styles.mapSnap}
+                      region={{
+                        latitude: props.authUser.profileData.location.latitude,
+                        longitude: props.authUser.profileData.location.longitude,
+                        latitudeDelta: 0.02,
+                        longitudeDelta: 0.04,
+                      }}>
+                      <Marker
+                        coordinate={{
+                          latitude: props.authUser.profileData.location.latitude,
+                          longitude: props.authUser.profileData.location.longitude,
+                        }} />
+                    </MapView>
+                  )}
+                </View>
+                <View>
+                  <TouchableOpacity style={styles.btn} onPress={() => {
+                    props.updateProfileData({
+                      firstName: firstName,
+                      lastName: lastName,
+                      email: email,
+                      dob: dob,
+                      mobileNumber: mobileNumber,
+                      bloodGroup: bloodGroup,
+                      gender: gender,
+                      address: address,
+                      password: props.authUser.profileData.password,
+                      uid: props.authUser.user,
+                      uri: props.authUser.profileData.uri,
+                      location: {
+                        latitude: props.authUser.profileData.location.latitude,
+                        longitude: props.authUser.profileData.location.longitude,
+                      }
+                    })
+                    {
+                      props.app.profileUpdateSuccess && (
+                        Alert.alert(
+                          'Congratulations!',
+                          'Your profile has been updated',
+                          [
+                            {
+                              text: 'Edit',
+                              onPress: () => {
+                                return null;
+                              },
+                            },
+                            {
+                              text: 'Go to Home',
+                              onPress: () => {
+                                props.navigation.replace('DrawerNav');
+                              },
+                            },
+                          ],
+                          { cancelable: false },
+                        )
+                      )
+                    }
+                  }}>
                     <Text style={styles.btnText}>Update Profile</Text>
                   </TouchableOpacity>
                 </View>
               </View>
             </View>
-
           </View>
-
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -283,23 +368,48 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   mapSnap: {
-      width: '100%',
-      height: 140,
-      padding: 0,
-      backgroundColor: 'pink',
+    height: 140,
   },
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 22,
+    width: '100%'
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 35,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5
+  },
+  textStyle: {
+    color: "white",
+    fontWeight: "bold",
+    textAlign: "center",
+    fontFamily: 'Lato-Regular',
+  }
 })
 
 const mapStateToProps = (state) => ({
-  name: state.app.name,
-  age: state.app.age,
-  mobile: state.app.mobile,
+  app: state.app,
+  authUser: state.authUser,
 })
 
 const mapDispatchToProps = (dispatch) => ({
-  ad_categories: (data) => dispatch(ad_categories(data)),
-  pakhPalle: () => dispatch(),
-
+  getCurrentLocation: () => dispatch(getCurrentLocation()),
+  getUserPlace: () => dispatch(getUserPlace()),
+  getProfileData: (uid) => dispatch(getProfileData(uid)),
+  updateProfileData: (data) => dispatch(updateProfileData(data)),
+  sendPhotoToDb: (uri) => dispatch(sendPhotoToDb(uri)),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(Profile);

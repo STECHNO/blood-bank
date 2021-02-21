@@ -1,13 +1,58 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, Image, TouchableOpacity } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import bloodDrop from '../Image/b3.png';
-import { Icon } from 'native-base';
-import { TextInput } from 'react-native-gesture-handler';
+import { Item, Input, Label, Spinner } from 'native-base';
+import { connect } from 'react-redux';
+import { signIn, postUser, signUp } from '../store/action';
+import auth from '@react-native-firebase/auth';
+
+
+function LoginScreen(props) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [initializing, setInitializing] = useState(true);
+  const [user, setUser] = useState();
 
 
 
-function LoginScreen({ navigation }) {
+  const onAuthStateChanged = (user) => {
+    if(props.authUser.user == null){
+      setUser(null)
+    }
+    else if ((user != null) && (props.authUser.user != null)){
+      setUser(user);
+      props.navigation.push('DrawerNav');
+    }
+    console.log('login ---AUTH', user)
+    console.log('login ---REDUX', props.authUser.user)
+    if (initializing) setInitializing(false);
+    // if (props.authUser.user != null) {
+    //   console.log('login', props.authUser.user)
+    //   props.navigation.push('DrawerNav');
+    // }
+    // if (user) {
+    //   console.log('login', props.authUser.user)
+    //   props.navigation.push('DrawerNav');
+    // }
+  }
+
+  useEffect(() => {
+    const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
+    return subscriber;
+  }, [props.authUser.user]);
+
+  if (initializing) return (
+    <LinearGradient colors={['#B30E05', '#C34632']} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+      <View>
+        <Spinner color='#fff' />
+      </View>
+    </LinearGradient>
+  );
+
+
+
+
   return (
     <LinearGradient colors={['#B30E05', '#C34632']} style={styles.container}>
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
@@ -19,25 +64,22 @@ function LoginScreen({ navigation }) {
         </View>
         <View style={{ flex: 2, alignItems: 'center', justifyContent: 'center', width: '100%' }}>
           <View style={styles.fieldContainer}>
-            <View style={{ width: 45 }}>
-              <Icon type="FontAwesome" ios='user' android='user' style={styles.icon} />
-            </View>
-            <View >
-              <TextInput value='' style={styles.input} placeholder='Email' placeholderTextColor='#8B0001' />
-            </View>
-          </View>
-          <View style={styles.fieldContainer}>
-            <View style={{ width: 45 }} >
-              <Icon type="FontAwesome" ios='key' android='lock' style={styles.icon} />
-            </View>
-            <View>
-              <TextInput value='' style={styles.input} placeholder='Password' placeholderTextColor='#8B0001' secureTextEntry={true} />
-            </View>
+            <Item floatingLabel style={{ marginBottom: 10 }}>
+              <Label style={styles.labelStyle}>Email</Label>
+              <Input style={styles.inputStyle} value={email} onChangeText={(text) => setEmail(text)} />
+            </Item>
+            <Item floatingLabel style={{ marginBottom: 10 }}>
+              <Label style={styles.labelStyle}>Password</Label>
+              <Input style={styles.inputStyle} secureTextEntry={true} value={password} onChangeText={(pass) => setPassword(pass)} />
+            </Item>
           </View>
           <View style={{ width: '100%' }}>
             <View>
-              <TouchableOpacity style={styles.btn} onPress={() => navigation.push('DrawerNav')} >
-                <Text style={{ fontSize: 15, fontWeight: 'bold', fontFamily: 'Lato-Regular', color: '#8B0001' }} >Sign In</Text>
+              <TouchableOpacity style={styles.btn} onPress={() => {
+                props.signIn(email, password);
+              }}>
+                {!props.authUser.spinner && (<Text style={styles.btnText}>Sign In</Text>)}
+                {props.authUser.spinner && (<Spinner style={styles.btnText} color='red' />)}
               </TouchableOpacity>
             </View>
           </View>
@@ -46,7 +88,7 @@ function LoginScreen({ navigation }) {
               <Text style={{ color: '#fff', fontSize: 13, fontFamily: 'Lato-Regular' }}>Forgot Password?</Text>
             </View>
             <View style={{}}>
-              <Text style={{ color: '#fff', fontSize: 13, fontFamily: 'Lato-Regular' }} onPress={() => navigation.push('RegisterScreen')} >Don't have an account? Sign Up</Text>
+              <Text style={{ color: '#fff', fontSize: 13, fontFamily: 'Lato-Regular' }} onPress={() => props.navigation.push('RegisterScreen')} >Don't have an account? Sign Up</Text>
             </View>
           </View>
         </View>
@@ -71,14 +113,19 @@ const styles = StyleSheet.create({
     height: 70,
   },
   fieldContainer: {
-    flexDirection: 'row',
-    borderColor: '#ccc',
-    borderRadius: 1,
-    borderWidth: 1,
     width: '100%',
     height: 'auto',
-    backgroundColor: '#fff',
     marginBottom: 10,
+  },
+  labelStyle: {
+    color: '#fff',
+    paddingLeft: 5,
+    fontFamily: 'Lato-Regular'
+  },
+  inputStyle: {
+    color: '#fff',
+    paddingLeft: 5,
+    fontFamily: 'Lato-Regular'
   },
   icon: {
     backgroundColor: '#C333',
@@ -86,23 +133,32 @@ const styles = StyleSheet.create({
     borderRightWidth: 1,
     padding: 12
   },
-  input: {
-    padding: 5,
-    flex: 1,
-    fontSize: 16,
-    fontFamily: 'Lato-Thin',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 5,
-  },
   btn: {
+    marginTop: 10,
     width: '100%',
-    height: 'auto',
+    height: 40,
     backgroundColor: '#fff',
     padding: 10,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 3,
+  },
+  btnText: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    fontFamily: 'Lato-Regular',
+    color: '#8B0001',
   }
 })
-export default LoginScreen;
+
+const mapStateToProps = (state) => ({
+  authUser: state.authUser,
+})
+
+const mapDispatchToProps = (dispatch) => ({
+  signIn: (email, password) => dispatch(signIn(email, password)),
+  signUp: (email, password) => dispatch(signUp(email, password)),
+  postUser: (user) => dispatch(postUser(user)),
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(LoginScreen);

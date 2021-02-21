@@ -1,70 +1,103 @@
-import React, { useState } from 'react';
-import { View, SafeAreaView, ScrollView, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import { Icon, Item, Input, Text, Card, CardItem, Body } from 'native-base';
+import React, { useEffect } from 'react';
+import { View, SafeAreaView, ScrollView, StyleSheet, TouchableOpacity, Linking } from 'react-native';
+import { Icon, Item, Input, Text, Card, CardItem, Body, Spinner } from 'native-base';
 import { connect } from 'react-redux';
-import bloodDrop from '../../../Image/b3.png';
+import { getBloodRecipientsList } from '../../../store/action';
+import MapView, { PROVIDER_GOOGLE, Marker } from 'react-native-maps';
+import LocationName from '../../../src/config/map'
 
 const Recipients = (props) => {
-    const [ResName, setResName] = useState('Arbaz Khan');
-    const [bloodType, setBloodType] = useState('A+');
-    const [ResLocation, setResLocation] = useState('Karachi, Pakistan');
-    const [contactNum, setContactNum] = useState('0300-1234567');
-    const [gender, setGender] = useState('Male');
+
+    const openDialScreen = (number) => {
+        if (Platform.OS === 'ios') {
+          number = `telprompt:${number}`;
+        } else {
+          number = `tel:${number}`;
+        }
+        Linking.openURL(number);
+      };
+
+    useEffect(() => {
+        props.getBloodRecipientsList();
+    }, [])
+
 
     return (
         <SafeAreaView style={{ flex: 1, width: '100%', }}>
             <ScrollView persistentScrollbar={true} >
                 <View style={styles.mainContainer}>
                     <View style={{ flex: 1, width: '90%' }}>
-                        <Item regular style={{ marginTop: 10, marginBottom: 1, borderBottomWidth: 1 }}>
+                        {/* <Item regular style={{ marginTop: 10, marginBottom: 1, borderBottomWidth: 1 }}>
                             <Item>
                                 <Icon name="ios-search" />
-                                <Input style={{ fontSize : 13}} placeholder="Search Recipients By Blood Your Group" />
+                                <Input style={{ fontSize: 13 }} placeholder="Search Recipients By Your Blood Group" />
                                 <Icon name="md-medkit" />
                             </Item>
-                        </Item>
+                        </Item> */}
                         <View style={styles.profileHeaderLine} />
                     </View>
                     <View style={styles.cardStyle}>
-                        <Card>
-                            <CardItem style={styles.cardBorder}>
-                                <Body>
-                                    <View style={{ flex: 1, flexDirection: 'row' }}>
-                                        <Text style={styles.textStyle} >Recipients Name:</Text>
-                                        <Text style={styles.textStyleSub} >{ResName}</Text>
-                                    </View>
-                                    <View style={{ flex: 1, flexDirection: 'row' }}>
-                                        <Text style={styles.textStyle} >Blood Type Required: </Text>
-                                        <Text style={styles.textStyleSub} >{bloodType}</Text>
-                                    </View>
-                                    <View style={{ flex: 1, flexDirection: 'row' }}>
-                                        <Text style={styles.textStyle} >Gender: </Text>
-                                        <Text style={styles.textStyleSub} >{gender}</Text>
-                                    </View>
-                                    <View style={{ flex: 1, flexDirection: 'row' }}>
-                                        <Text style={styles.textStyle} >Contact Number: </Text>
-                                        <Text style={styles.textStyleSub} >{contactNum}</Text>
-                                    </View>
-                                    <View style={{ flex: 1, flexDirection: 'row' }}>
-                                        <Text style={styles.textStyle}>Recipient's Location:</Text>
-                                        <Text style={styles.textStyleSub} >{ResLocation}</Text>
-                                    </View>
-                                    <View style={{ flex: 1, flexDirection: 'row', marginTop: 5 }}>
-                                        <Text style={styles.textStyle}>Map Location:</Text>
-                                    </View>
-                                    <View style={styles.mapSnap}>
-                                        <View style={{ flex: 2, alignItems: 'center', justifyContent: 'center' }}>
-                                            <Image style={styles.drop} source={bloodDrop} />
-                                        </View>
-                                    </View>
-                                    <View style={{ flex: 1, flexDirection: 'row' }} >
-                                        <TouchableOpacity style={styles.btn}>
-                                            <Text style={styles.btnText}>Donate Blood</Text>
-                                        </TouchableOpacity>
-                                    </View>
-                                </Body>
-                            </CardItem>
-                        </Card>
+                        {(props.app.recipientsList.length == 0) ? (<View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><Spinner style={{ fontSize: 50 }} color='#B30E05' /></View>)
+                            :
+                            (props.app.recipientsList.map((value, item) => {
+                                return (
+                                    <Card key={item}>
+                                        <CardItem style={styles.cardBorder}>
+                                            <Body>
+                                                <View style={{ flex: 1, flexDirection: 'row' }}>
+                                                    <Text style={styles.textStyle} >Recipient Name:</Text>
+                                                    <Text style={styles.textStyleSub} >{`${value.firstName} ${value.lastName}`}</Text>
+                                                </View>
+                                                <View style={{ flex: 1, flexDirection: 'row' }}>
+                                                    <Text style={styles.textStyle} >Blood Type: </Text>
+                                                    <Text style={styles.textStyleSub} >{value.bloodGroup}</Text>
+                                                </View>
+                                                <View style={{ flex: 1, flexDirection: 'row' }}>
+                                                    <Text style={styles.textStyle} >Gender: </Text>
+                                                    <Text style={styles.textStyleSub} >{value.gender}</Text>
+                                                </View>
+                                                <View style={{ flex: 1, flexDirection: 'row' }}>
+                                                    <Text style={styles.textStyle} >Contact Number: </Text>
+                                                    <Text style={styles.textStyleSub} >{value.mobileNumber}</Text>
+                                                </View>
+                                                <View style={{ flex: 1, flexDirection: 'row' }}>
+                                                    <Text style={styles.textStyle} >Email: </Text>
+                                                    <Text style={styles.textStyleSub} >{value.email}</Text>
+                                                </View>
+                                                <LocationName location={value.location} />
+                                                <View style={{ flex: 1, flexDirection: 'row', marginTop: 5 }}>
+                                                    <Text style={styles.textStyle}>Map Location:</Text>
+                                                </View>
+                                                <View style={{ flex: 1, flexDirection: 'row', marginTop: 5 }}>
+                                                    <MapView
+                                                        provider={PROVIDER_GOOGLE}
+                                                        style={styles.mapSnap}
+                                                        region={{
+                                                            latitude: value.location.latitude,
+                                                            longitude: value.location.longitude,
+                                                            latitudeDelta: 0.02,
+                                                            longitudeDelta: 0.04,
+                                                        }}>
+                                                        <Marker
+                                                            coordinate={{
+                                                                latitude: value.location.latitude,
+                                                                longitude: value.location.longitude,
+                                                            }}
+                                                            title={`Recipient Name: ${value.firstName} ${value.lastName}`}
+                                                            description={`Blood Group: ${value.bloodGroup}`}
+                                                        />
+                                                    </MapView>
+                                                </View>
+                                                <View style={{ flex: 1, flexDirection: 'row' }} >
+                                                    <TouchableOpacity style={styles.btn} onPress={() => openDialScreen(value.mobileNumber)} >
+                                                        <Text style={styles.btnText}>Donate Blood</Text>
+                                                    </TouchableOpacity>
+                                                </View>
+                                            </Body>
+                                        </CardItem>
+                                    </Card>
+                                )
+                            }))}
                     </View>
                 </View>
             </ScrollView>
@@ -144,13 +177,12 @@ const styles = StyleSheet.create({
 })
 
 const mapStateToProps = (state) => ({
-    name: state.app.name,
-    age: state.app.age,
-    mobile: state.app.mobile,
+    authUser: state.authUser,
+    app: state.app,
 })
 
 const mapDispatchToProps = (dispatch) => ({
-    ad_categories: (data) => dispatch(ad_categories(data)),
+    getBloodRecipientsList: () => dispatch(getBloodRecipientsList()),
 
 })
 

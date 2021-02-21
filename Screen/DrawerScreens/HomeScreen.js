@@ -11,10 +11,10 @@ function HomeScreen({ navigation }) {
       <Container>
         <Tabs tabBarPosition='bottom' >
           <Tab heading="Home" tabStyle={{ backgroundColor: '#B30E05'}} textStyle={{color: '#fff'}} activeTabStyle={{ backgroundColor: '#B30E05'}}>
-            <HomeTab />
+            <HomeTab navigation={navigation}/>
           </Tab>
           <Tab heading="Donors" tabStyle={{ backgroundColor: '#B30E05'}} textStyle={{color: '#fff'}} activeTabStyle={{ backgroundColor: '#B30E05'}}>
-            <Donors />
+            <Donors navigation={navigation}/>
           </Tab>
           <Tab heading="Recipients" tabStyle={{ backgroundColor: '#B30E05'}} textStyle={{color: '#fff'}} activeTabStyle={{ backgroundColor: '#B30E05'}}>
             <Recipients />

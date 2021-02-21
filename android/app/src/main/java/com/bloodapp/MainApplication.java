@@ -4,6 +4,7 @@ import android.app.Application;
 import android.content.Context;
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
+import com.arttitude360.reactnative.rngoogleplaces.RNGooglePlacesPackage;
 import com.reactcommunity.rndatetimepicker.RNDateTimePickerPackage;
 import com.BV.LinearGradient.LinearGradientPackage;
 import com.facebook.react.ReactInstanceManager;
@@ -32,7 +33,7 @@ public class MainApplication extends Application implements ReactApplication {
           List<ReactPackage> packages = new PackageList(this).getPackages();
           // Packages that cannot be autolinked yet can be added manually here, for example:
           // packages.add(new MyReactNativePackage());
-          //RNdatetimepicker
+          // packages.add(new RNGooglePlacesPackage());
           return packages;
         }
 

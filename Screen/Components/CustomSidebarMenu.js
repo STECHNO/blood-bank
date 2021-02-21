@@ -1,26 +1,29 @@
 import React from 'react';
 import { View, Text, Alert, StyleSheet } from 'react-native';
 import { DrawerContentScrollView, DrawerItemList, DrawerItem } from '@react-navigation/drawer';
-import AsyncStorage from '@react-native-community/async-storage';
+import { Thumbnail } from 'native-base';
+import { Icon } from 'native-base';
 
 const CustomSidebarMenu = (props) => {
   return (
     <View style={styles.sideMenuContainer}>
       <View style={styles.profileHeader}>
-        <View style={styles.profileHeaderPicCircle}>
-          <Text style={{ fontSize: 25, color: '#fff' }}>
-            {'About React'.charAt(0)}
-          </Text>
+        {props.drawerToCSM.props.authUser.profileData.uri === '' && (
+          <View style={styles.icon}>
+          <Icon type="FontAwesome" ios='user' android='picture-o' />
+          <Text style={{ fontFamily: 'Lato-Regular', fontWeight: '100', fontSize: 10, marginTop: 5 }}>Upload Photo</Text>
         </View>
-        <Text style={styles.profileHeaderText}>About React</Text>
+        )}
+        {(props.drawerToCSM.props.authUser.profileData.uri !== '') && (
+          <Thumbnail source={{ uri: props.drawerToCSM.props.authUser.profileData.uri }} />
+        )}
+        <Text style={styles.profileHeaderText}> {`${props.drawerToCSM.props.authUser.profileData.firstName} ${props.drawerToCSM.props.authUser.profileData.lastName}`} </Text>
       </View>
       <View style={styles.profileHeaderLine} />
-
       <DrawerContentScrollView {...props}>
-
         <DrawerItemList {...props} />
-        
         <DrawerItem
+          style={{ marginTop: 150 }}
           label={({ color }) => <Text style={{ color: '#d8d8d8' }}>Sign Out</Text>}
           onPress={() => {
             props.navigation.toggleDrawer();
@@ -37,8 +40,10 @@ const CustomSidebarMenu = (props) => {
                 {
                   text: 'Confirm',
                   onPress: () => {
-                    AsyncStorage.clear();
-                    props.navigation.replace('Auth');
+                    props.drawerToCSM.props.signOut();
+                    setTimeout(() => {
+                      props.navigation.replace('Auth');
+                    }, 500);
                   },
                 },
               ],
@@ -53,7 +58,7 @@ const CustomSidebarMenu = (props) => {
 
 export default CustomSidebarMenu;
 
-const styles= StyleSheet.create({
+const styles = StyleSheet.create({
   sideMenuContainer: {
     flex: 1,
     width: '100%',
@@ -89,5 +94,15 @@ const styles= StyleSheet.create({
     marginHorizontal: 20,
     backgroundColor: '#e2e2e2',
     marginTop: 15,
+  },
+  icon: {
+    backgroundColor: '#C333',
+    borderRightColor: '#ccc',
+    borderRightWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 50,
+    width: 90,
+    height: 90,
   },
 });
